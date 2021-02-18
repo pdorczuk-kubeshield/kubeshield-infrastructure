@@ -1,0 +1,71 @@
+---
+- name: prepare the server to host kubernetes clusters
+  hosts: all
+  become: true
+  
+  tasks:
+    - name: Install Libvirt packages
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: yes
+      loop:
+        - qemu-kvm
+        - libvirt-daemon-system
+        - libvirt-clients
+        - virtinst
+        - cpu-checker
+        - libguestfs-tools
+        - libosinfo-bin
+        - genisoimage
+    
+    - name: Add Terraform APT repository
+      ansible.builtin.apt_repository:
+        repo: deb [arch=amd64] https://apt.releases.hashicorp.com focal main
+        state: present
+    - name: Install Terraform
+      apt:
+        name: terraform
+        state: present
+        update_cache: yes
+    
+    - name: Add Terraform Libvirt provider APT repository
+      ansible.builtin.apt_repository:
+        repo: deb http://download.opensuse.org/repositories/systemsmanagement:/terraform/Ubuntu_20.04/ /
+        filename: systemsmanagement:terraform.list
+        state: present
+    - name: Install Terraform Provider Libvirt
+      apt:
+        name: terraform-provider-libvirt
+        state: present
+        update_cache: yes
+
+    - include_role:
+        name: mrlesmithjr.netplan
+      vars:
+        become: yes
+        # This role will do nothing unless netplan_enabled is true.
+        netplan_enabled: true
+        netplan_configuration:
+          network:
+            version: 2
+            renderer: networkd
+
+            ethernets:
+              enp5s0:
+                dhcp4: false 
+                dhcp6: false 
+
+            bridges:
+              br0:
+                interfaces: [enp5s0]
+                addresses: [ 192.168.1.211/24 ]
+                gateway4: 192.168.1.1
+                mtu: 1500
+                nameservers:
+                  addresses: [192.168.1.1]
+                parameters:
+                  stp: true
+                  forward-delay: 4
+                dhcp4: no
+                dhcp6: no

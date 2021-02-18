@@ -1,0 +1,6 @@
+---
+roles:
+  - name: mrlesmithjr.netplan
+
+collections:
+  - name: community.libvirt

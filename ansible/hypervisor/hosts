@@ -1,0 +1,2 @@
+[hypervisors]
+mothership.kubeshield.com ansible_connection=ssh  ansible_user=phil ansible_host=192.168.1.211 ansible_password=jk ansible_become_password=jk ansible_become_user=root
