@@ -1,0 +1,33 @@
+teleport:
+    data_dir: /var/lib/teleport
+auth_service:
+    enabled: true
+    cluster_name: "kubeshield"
+    listen_addr: 0.0.0.0:3025
+    tokens:
+    - proxy,node,app:jieg1tasa4i1ojo1d90vgqbgkamo60oz2t6mel9len60nr1w
+    - kube:8bun3ole9f1jbt6h53c9rgvdpgvfk21nf608wb7z2f5sqsxg
+    authentication:
+      type: github
+ssh_service:
+    enabled: true
+    labels:
+        env: prod
+app_service:
+    enabled: true
+    debug_app: true
+proxy_service:
+    enabled: true
+    listen_addr: 0.0.0.0:3023
+    kube_listen_addr: 0.0.0.0:3026
+    web_listen_addr: 0.0.0.0:3080
+    tunnel_listen_addr: 0.0.0.0:3024
+    public_addr: teleport.kubeshield.com:3080
+    https_keypairs:
+      - key_file: /etc/letsencrypt/live/teleport.kubeshield.com/privkey.pem
+        cert_file: /etc/letsencrypt/live/teleport.kubeshield.com/fullchain.pem
+    kubernetes_service:
+       enabled: yes
+       public_addr: [k8s.kubeshield.com:3027]
+       listen_addr: 0.0.0.0:3027
+       kubeconfig_file: /var/lib/teleport/kubeconfig

@@ -6,7 +6,7 @@ PURPLE="\033[0;35m"
 BLUE="\033[0;34m"
 NC="\033[0m" # No Color
 OK="${GREEN}OK${NC}\r\n"
-ROOT="../../"
+ROOT="./"
 
 case "$1" in
     create|c)
