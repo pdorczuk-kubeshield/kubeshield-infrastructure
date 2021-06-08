@@ -23,9 +23,9 @@ case "$1" in
 
             # start teleport with mounted config and data directories, plus all ports
             docker run --hostname localhost --name teleport \
-            -v ~/teleport/config:/etc/teleport \
-            -v ~/teleport/data:/var/lib/teleport \
-            -v ~/teleport/certs:/etc/letsencrypt/live/teleport.kubeshield.com \
+            -v ./config:/etc/teleport \
+            -v ./data:/var/lib/teleport \
+            -v /etc/letsencrypt/live/teleport.kubeshield.com:/etc/letsencrypt/live/teleport.kubeshield.com \
             -p 3023:3023 -p 3025:3025 -p 3080:3080 \
             quay.io/gravitational/teleport:6
         fi
@@ -41,6 +41,14 @@ case "$1" in
             --dns-cloudflare-credentials /etc/letsencrypt/cloudflare-creds \
             -d teleport.kubeshield.com
             printf "${OK}"
+
+            # start teleport with mounted config and data directories, plus all ports
+            docker run --hostname localhost --name teleport \
+            -v ./config:/etc/teleport \
+            -v ./data:/var/lib/teleport \
+            -v /etc/letsencrypt/live/teleport.kubeshield.com:/etc/letsencrypt/live/teleport.kubeshield.com \
+            -p 3023:3023 -p 3025:3025 -p 3080:3080 \
+            quay.io/gravitational/teleport:6
         fi
     ;;    
     destroy|d)
