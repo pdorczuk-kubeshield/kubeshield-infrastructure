@@ -9,7 +9,7 @@ OK="${GREEN}OK${NC}\r\n"
 
 case "$1" in
     up-dev|ud)
-        if [ ! -d /etc/letsencrypt/live/teleport* ]; then
+        if [ ! -d /etc/letsencrypt/live/teleport.kubeshield.com ]; then
             printf "${PURPLE}Getting staging cert from certbot..."
             # Get staging certificate from Lets Encrypt
             sudo docker run -it --rm --name certbot -v "/etc/letsencrypt:/etc/letsencrypt" \
@@ -31,7 +31,7 @@ case "$1" in
         fi
     ;;
     up-prod|up)
-        if [ ! -d /etc/letsencrypt/live/teleport* ]; then
+        if [ ! -d /etc/letsencrypt/live/teleport.kubeshield.com ]; then
             printf "${PURPLE}Getting staging cert from certbot..."
             # Get production certificate from Lets Encrypt
             sudo docker run -it --rm --name certbot -v "/etc/letsencrypt:/etc/letsencrypt" \
