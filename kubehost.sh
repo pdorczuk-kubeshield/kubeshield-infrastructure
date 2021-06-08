@@ -17,19 +17,26 @@ fish \
 apt-transport-https \
 ca-certificates \
 curl
+nfs-common \
+gnupg \
+lsb-release
 
 chsh -s `which fish`
 
 
 #######################################################################################################################
-#   Install containerd                                                                                                #
+#   Install Docker                                                                                                #
 #######################################################################################################################
-sudo apt-get install containerd -y
-sudo mkdir -p /etc/containerd
-
-sudo cat ./kubeadm/containerd-config.toml > /etc/containerd/config.toml
-sudo systemctl restart containerd
-
+sudo apt-get remove docker docker-engine docker.io containerd runc
+sudo apt-get update
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+echo \
+  "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update
+sudo apt-get install docker-ce docker-ce-cli containerd.io
+# install docker-compose
+sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 
 
 #######################################################################################################################
@@ -45,23 +52,21 @@ net.bridge.bridge-nf-call-iptables = 1
 EOF
 sudo sysctl --system
 
-cat <<EOF | sudo tee /etc/modules-load.d/containerd.conf
-overlay
-br_netfilter
+sudo mkdir /etc/docker
+cat <<EOF | sudo tee /etc/docker/daemon.json
+{
+  "exec-opts": ["native.cgroupdriver=systemd"],
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "100m"
+  },
+  "storage-driver": "overlay2"
+}
 EOF
 
-sudo modprobe overlay
-sudo modprobe br_netfilter
-
-# Setup required sysctl params, these persist across reboots.
-cat <<EOF | sudo tee /etc/sysctl.d/99-kubernetes-cri.conf
-net.bridge.bridge-nf-call-iptables  = 1
-net.ipv4.ip_forward                 = 1
-net.bridge.bridge-nf-call-ip6tables = 1
-EOF
-
-# Apply sysctl params without reboot
-sudo sysctl --system
+sudo systemctl enable docker
+sudo systemctl daemon-reload
+sudo systemctl restart docker
 
 #Download the Google Cloud public signing key:
 sudo curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
@@ -71,5 +76,32 @@ echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https:/
 
 #Update apt package index, install kubelet, kubeadm and kubectl, and pin their version:
 sudo apt-get update
-sudo apt-get install -y kubelet kubeadm kubectl
+sudo apt-get install -y kubeadm=1.20.7-00 kubelet=1.20.7-00 kubectl=1.20.7-00
 sudo apt-mark hold kubelet kubeadm kubectl
+
+ --hostname localhost --rm \
+  --entrypoint=/bin/sh \
+  -v ~/teleport/config:/etc/teleport \
+  quay.io/gravitational/teleport:6 -c "./teleport/teleport.yaml"
+
+
+
+#######################################################################################################################
+#   Install teleport                                                                                                  #
+#######################################################################################################################
+# start teleport with mounted config and data directories, plus all ports
+docker run --hostname localhost --name teleport \
+  -v ~/teleport/config:/etc/teleport \
+  -v ~/teleport/data:/var/lib/teleport \
+  -p 3023:3023 -p 3025:3025 -p 3080:3080 \
+  quay.io/gravitational/teleport:6
+
+
+#######################################################################################################################
+#   Install helm                                                                                                      #
+#######################################################################################################################
+wget https://get.helm.sh/helm-v3.6.0-linux-amd64.tar.gz
+tar -zxvf helm-v*
+sudo mv linux-amd64/helm /usr/local/bin/helm
+rm helm-v*
+rm -rf linux-amd64

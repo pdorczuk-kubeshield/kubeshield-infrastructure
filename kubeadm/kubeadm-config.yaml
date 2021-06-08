@@ -13,5 +13,5 @@ networking:
   serviceSubnet: "10.96.0.0/12"
   podSubnet: "10.0.0.0/16"
   dnsDomain: "cluster.local"
-kubernetesVersion: "v1.20.2"
+kubernetesVersion: "v1.20.7"
 controlPlaneEndpoint: "192.168.1.211:6443"
