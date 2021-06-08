@@ -6,6 +6,7 @@ PURPLE="\033[0;35m"
 BLUE="\033[0;34m"
 NC="\033[0m" # No Color
 OK="${GREEN}OK${NC}\r\n"
+ROOT="$(readlink -f ./)"
 
 case "$1" in
     up-dev|ud)
@@ -23,8 +24,8 @@ case "$1" in
 
             # start teleport with mounted config and data directories, plus all ports
             docker run --hostname localhost --name teleport \
-            -v ./config:/etc/teleport \
-            -v ./data:/var/lib/teleport \
+            -v $ROOT/config:/etc/teleport \
+            -v $ROOT/data:/var/lib/teleport \
             -v /etc/letsencrypt/live/teleport.kubeshield.com:/etc/letsencrypt/live/teleport.kubeshield.com \
             -p 3023:3023 -p 3025:3025 -p 3080:3080 \
             quay.io/gravitational/teleport:6
@@ -52,8 +53,6 @@ case "$1" in
         fi
     ;;    
     destroy|d)
+        docker rm -f teleport
     ;;
 esac
-
-
-# 
