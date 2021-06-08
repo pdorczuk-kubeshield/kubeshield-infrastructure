@@ -11,7 +11,7 @@ case "$1" in
     up-dev|ud)
         if [ ! -d /etc/letsencrypt/live/teleport* ]; then
             printf "${PURPLE}Getting staging cert from certbot..."
-            # Get certificate from Lets Encrypt
+            # Get staging certificate from Lets Encrypt
             sudo docker run -it --rm --name certbot -v "/etc/letsencrypt:/etc/letsencrypt" \
             -v "/var/lib/letsencrypt:/var/lib/letsencrypt" \
             certbot/dns-cloudflare certonly \
@@ -20,11 +20,20 @@ case "$1" in
             --server https://acme-staging-v02.api.letsencrypt.org/directory \
             -d teleport.kubeshield.com
             printf "${OK}"
+
+            # start teleport with mounted config and data directories, plus all ports
+            docker run --hostname localhost --name teleport \
+            -v ~/teleport/config:/etc/teleport \
+            -v ~/teleport/data:/var/lib/teleport \
+            -v ~/teleport/certs:/etc/letsencrypt/live/teleport.kubeshield.com \
+            -p 3023:3023 -p 3025:3025 -p 3080:3080 \
+            quay.io/gravitational/teleport:6
+        fi
     ;;
     up-prod|up)
         if [ ! -d /etc/letsencrypt/live/teleport* ]; then
             printf "${PURPLE}Getting staging cert from certbot..."
-            # Get certificate from Lets Encrypt
+            # Get production certificate from Lets Encrypt
             sudo docker run -it --rm --name certbot -v "/etc/letsencrypt:/etc/letsencrypt" \
             -v "/var/lib/letsencrypt:/var/lib/letsencrypt" \
             certbot/dns-cloudflare certonly \
@@ -32,6 +41,7 @@ case "$1" in
             --dns-cloudflare-credentials /etc/letsencrypt/cloudflare-creds \
             -d teleport.kubeshield.com
             printf "${OK}"
+        fi
     ;;    
     destroy|d)
     ;;
