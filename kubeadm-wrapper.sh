@@ -29,7 +29,7 @@ case "$1" in
         # Install Calico
         printf "${PURPLE}Install Calico networking..."
         kubectl create -f https://docs.projectcalico.org/manifests/tigera-operator.yaml > /dev/null 2>&1
-        kubectl create -f $ROOT/kubeadm/calico-config.yaml > /dev/null 2>&1
+        kubectl create -f ./kubeadm/calico-config.yaml > /dev/null 2>&1
         printf "${OK}"
     ;;
 
